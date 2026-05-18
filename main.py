@@ -1,9 +1,8 @@
 from src.usuario import Usuario
 from src.historia import Historia
+from src.motor_narrativa import MotorNarrativa
 
 jovi = Usuario("Jovi")
-jovi.iniciar_historia("Davi e Golias")
-jovi.ganhar_pontos(50)
 
 davi = Historia(
     titulo="Davi e Golias",
@@ -21,5 +20,23 @@ davi.adicionar_capitulo({
     ]
 })
 
-davi.mostrar_info()
-davi.mostrar_capitulo(0)
+davi.adicionar_capitulo({
+    "titulo": "A Decisão",
+    "texto": "Davi pega cinco pedras lisas do riacho e se aproxima de Golias com sua funda. O gigante o despreza ao vê-lo tão jovem...",
+    "escolhas": [
+        "Usar a funda com confiança em Deus",
+        "Tentar negociar com Golias",
+        "Recuar e pensar em outra estratégia"
+    ]
+})
+
+jovi.iniciar_historia("Davi e Golias")
+motor = MotorNarrativa(jovi, davi)
+motor.iniciar()
+
+while motor.ativo:
+    try:
+        escolha = int(input("\nSua escolha: "))
+        motor.avancar(escolha)
+    except ValueError:
+        print("Digite apenas números!")
