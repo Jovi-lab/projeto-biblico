@@ -1,9 +1,16 @@
 import streamlit as st
 import json
+import os
+from dotenv import load_dotenv
 from src.usuario import Usuario
 from src.historia import Historia
 from src.motor_narrativa import MotorNarrativa
 from src.carregador import Carregador
+from src.ia_helper import IAHelper
+
+load_dotenv()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+ia = IAHelper(GROQ_API_KEY)
 
 st.set_page_config(
     page_title="Projeto Bíblico",
@@ -16,12 +23,21 @@ historias_data = carregador.carregar()
 
 if "usuario" not in st.session_state:
     st.session_state.usuario = None
+
 if "historia" not in st.session_state:
     st.session_state.historia = None
+
 if "motor" not in st.session_state:
     st.session_state.motor = None
+
 if "capitulo" not in st.session_state:
     st.session_state.capitulo = 0
+
+if "escolhas_feitas" not in st.session_state:
+    st.session_state.escolhas_feitas = []
+
+if "final_epico" not in st.session_state:
+    st.session_state.final_epico = None
 
 if st.session_state.usuario is None:
     st.title("✝ Projeto Bíblico")
@@ -68,12 +84,28 @@ else:
     if capitulo_idx < len(historia.capitulos):
         cap = historia.capitulos[capitulo_idx]
         st.subheader(cap['titulo'])
+
+        chave_imagem = f"imagem_cap_{capitulo_idx}"
+        if chave_imagem not in st.session_state:
+            with st.spinner("Gerando ilustração..."):
+                try:
+                    st.session_state[chave_imagem] = ia.gerar_url_imagem(cap['texto'])
+                except:
+                    st.session_state[chave_imagem] = None
+
+        if st.session_state[chave_imagem]:
+            st.image(st.session_state[chave_imagem], use_container_width=True)
+        else:
+            st.info("Ilustração não disponível no momento.")
+
+        st.image(st.session_state[chave_imagem], use_container_width=True)
         st.write(cap['texto'])
         st.divider()
         st.markdown("**O que você faz?**")
         for i, escolha in enumerate(cap['escolhas']):
             if st.button(escolha, key=f"escolha_{i}"):
                 usuario.ganhar_pontos(10)
+                st.session_state.escolhas_feitas.append(escolha)
                 st.session_state.capitulo += 1
                 novo_progresso = int(
                     (st.session_state.capitulo / len(historia.capitulos)) * 100
@@ -83,8 +115,27 @@ else:
     else:
         st.success(f"Você concluiu '{historia.titulo}'! 🎉")
         st.metric("Pontos ganhos", usuario.pontos)
+
+        if "escolhas_feitas" not in st.session_state:
+            st.session_state.escolhas_feitas = []
+
+        if st.session_state.final_epico is None:
+            with st.spinner("✨ A IA está gerando seu final épico..."):
+                st.session_state.final_epico = ia.gerar_final_epico(
+                    usuario,
+                    historia,
+                    st.session_state.escolhas_feitas
+            )
+
+        st.divider()
+        st.subheader("✨ Seu Final Épico")
+        st.write(st.session_state.final_epico)
+        st.divider()
+
         if st.button("Escolher outra história"):
             st.session_state.historia = None
             st.session_state.motor = None
             st.session_state.capitulo = 0
+            st.session_state.final_epico = None
+            st.session_state.escolhas_feitas = []
             st.rerun()
