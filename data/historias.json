@@ -1,0 +1,54 @@
+{
+    "historias": [
+        {
+            "titulo": "Davi e Golias",
+            "categoria": "Coragem",
+            "narrativa": "A história de um jovem pastor que enfrentou um gigante com fé.",
+            "capitulos": [
+                {
+                    "titulo": "O Desafio",
+                    "texto": "Golias avança e desafia o exército israelita. Ninguém tem coragem de enfrentá-lo. Davi, ainda jovem, ouve as palavras do gigante...",
+                    "escolhas": [
+                        "Aceitar o desafio e enfrentar Golias",
+                        "Falar com o rei Saul primeiro",
+                        "Observar o gigante por mais tempo"
+                    ]
+                },
+                {
+                    "titulo": "A Decisão",
+                    "texto": "Davi pega cinco pedras lisas do riacho e se aproxima de Golias com sua funda. O gigante o despreza ao vê-lo tão jovem...",
+                    "escolhas": [
+                        "Usar a funda com confiança em Deus",
+                        "Tentar negociar com Golias",
+                        "Recuar e pensar em outra estratégia"
+                    ]
+                }
+            ]
+        },
+        {
+            "titulo": "Jonas e a Baleia",
+            "categoria": "Obediência",
+            "narrativa": "A história de um profeta que fugiu de Deus e aprendeu sobre obediência.",
+            "capitulos": [
+                {
+                    "titulo": "A Fuga",
+                    "texto": "Deus ordena que Jonas vá a Nínive pregar. Jonas, com medo, embarca em um navio em direção oposta. Uma tempestade violenta surge no mar...",
+                    "escolhas": [
+                        "Confessar aos marinheiros que está fugindo de Deus",
+                        "Ficar calado e esperar a tempestade passar",
+                        "Pedir aos marinheiros que remem mais forte"
+                    ]
+                },
+                {
+                    "titulo": "Dentro da Baleia",
+                    "texto": "Jonas é lançado ao mar e engolido por uma grande baleia. No escuro, ele reflete sobre suas escolhas e clama a Deus...",
+                    "escolhas": [
+                        "Orar e pedir perdão a Deus",
+                        "Tentar encontrar uma saída sozinho",
+                        "Desistir e aceitar o destino"
+                    ]
+                }
+            ]
+        }
+    ]
+}
