@@ -1,5 +1,4 @@
 import streamlit as st
-import json
 import os
 from dotenv import load_dotenv
 from src.usuario import Usuario
@@ -23,19 +22,14 @@ historias_data = carregador.carregar()
 
 if "usuario" not in st.session_state:
     st.session_state.usuario = None
-
 if "historia" not in st.session_state:
     st.session_state.historia = None
-
 if "motor" not in st.session_state:
     st.session_state.motor = None
-
 if "capitulo" not in st.session_state:
     st.session_state.capitulo = 0
-
 if "escolhas_feitas" not in st.session_state:
     st.session_state.escolhas_feitas = []
-
 if "final_epico" not in st.session_state:
     st.session_state.final_epico = None
 
@@ -57,7 +51,7 @@ elif st.session_state.historia is None:
             st.markdown(f"### {h['titulo']}")
             st.caption(f"Categoria: {h['categoria']}")
             st.write(h['narrativa'])
-            if st.button(f"Jogar", key=f"historia_{i}"):
+            if st.button("Jogar", key=f"historia_{i}"):
                 historia = Historia(h['titulo'], h['categoria'], h['narrativa'])
                 for cap in h['capitulos']:
                     historia.adicionar_capitulo(cap)
@@ -84,21 +78,6 @@ else:
     if capitulo_idx < len(historia.capitulos):
         cap = historia.capitulos[capitulo_idx]
         st.subheader(cap['titulo'])
-
-        chave_imagem = f"imagem_cap_{capitulo_idx}"
-        if chave_imagem not in st.session_state:
-            with st.spinner("Gerando ilustração..."):
-                try:
-                    st.session_state[chave_imagem] = ia.gerar_url_imagem(cap['texto'])
-                except:
-                    st.session_state[chave_imagem] = None
-
-        if st.session_state[chave_imagem]:
-            st.image(st.session_state[chave_imagem], use_container_width=True)
-        else:
-            st.info("Ilustração não disponível no momento.")
-
-        st.image(st.session_state[chave_imagem], use_container_width=True)
         st.write(cap['texto'])
         st.divider()
         st.markdown("**O que você faz?**")
@@ -116,16 +95,13 @@ else:
         st.success(f"Você concluiu '{historia.titulo}'! 🎉")
         st.metric("Pontos ganhos", usuario.pontos)
 
-        if "escolhas_feitas" not in st.session_state:
-            st.session_state.escolhas_feitas = []
-
         if st.session_state.final_epico is None:
             with st.spinner("✨ A IA está gerando seu final épico..."):
                 st.session_state.final_epico = ia.gerar_final_epico(
                     usuario,
                     historia,
                     st.session_state.escolhas_feitas
-            )
+                )
 
         st.divider()
         st.subheader("✨ Seu Final Épico")
