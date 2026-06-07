@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+from PIL import Image
 from dotenv import load_dotenv
 from src.usuario import Usuario
 from src.historia import Historia
@@ -34,6 +35,22 @@ if "final_epico" not in st.session_state:
     st.session_state.final_epico = None
 
 if st.session_state.usuario is None:
+    st.markdown("""
+        <style>
+        .capa-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            animation: fadeIn 2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    img = Image.open("assets/static/capa.jpg")
+    st.image(img, use_container_width=True)
     st.title("✝ Projeto Bíblico")
     st.markdown("Explore histórias sagradas de um jeito diferente.")
     st.divider()
