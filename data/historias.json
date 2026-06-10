@@ -3,52 +3,95 @@
         {
             "titulo": "Davi e Golias",
             "categoria": "Coragem",
-            "narrativa": "A história de um jovem pastor que enfrentou um gigante com fé.",
-            "capitulos": [
+            "narrativa": "A história real de um jovem pastor escolhido por Deus para enfrentar o gigante que desafiava Israel.",
+            "imagem_capa": "assets/historias/davi_golias/capa.jpg",
+            "cenas": [
                 {
-                    "titulo": "O Desafio",
-                    "texto": "Golias avança e desafia o exército israelita. Ninguém tem coragem de enfrentá-lo. Davi, ainda jovem, ouve as palavras do gigante...",
-                    "escolhas": [
-                        "Aceitar o desafio e enfrentar Golias",
-                        "Falar com o rei Saul primeiro",
-                        "Observar o gigante por mais tempo"
-                    ]
+                    "id": 1,
+                    "titulo": "Quem foi Davi",
+                    "texto": "Davi era o filho mais novo de Jessé, da tribo de Judá, natural de Belém. Enquanto seus irmãos mais velhos eram homens de guerra, Davi cuidava das ovelhas de seu pai nos campos. Era ruivo, de bela aparência e o Senhor estava com ele. Foi ungido rei pelo profeta Samuel ainda jovem, escolhido não pela aparência, mas pelo coração — pois o Senhor disse a Samuel: 'O homem vê o exterior, mas o Senhor olha para o coração.' (1 Samuel 16:7). Davi era habilidoso com a harpa e com a funda, e já havia matado leão e urso para proteger o rebanho de seu pai. Sua confiança não estava em suas próprias forças, mas em Deus, que o havia livrado de todas as feras.",
+                    "referencia": "1 Samuel 16-17",
+                    "imagem": "assets/historias/davi_golias/cena1.jpg",
+                    "minijogo": {
+                        "tipo": "forca",
+                        "versiculo_completo": "O SENHOR não vê como o homem vê, pois o homem olha para a aparência, mas o SENHOR olha para o coração",
+                        "referencia": "1 Samuel 16:7",
+                        "dica": "Este versículo explica por que Deus escolheu Davi em vez de seus irmãos mais altos e fortes.",
+                        "palavra_oculta": "CORAÇÃO",
+                        "versiculo_com_lacuna": "O SENHOR não vê como o homem vê, pois o homem olha para a aparência, mas o SENHOR olha para o ___"
+                    }
                 },
                 {
-                    "titulo": "A Decisão",
-                    "texto": "Davi pega cinco pedras lisas do riacho e se aproxima de Golias com sua funda. O gigante o despreza ao vê-lo tão jovem...",
-                    "escolhas": [
-                        "Usar a funda com confiança em Deus",
-                        "Tentar negociar com Golias",
-                        "Recuar e pensar em outra estratégia"
-                    ]
-                }
-            ]
-        },
-        {
-            "titulo": "Jonas e a Baleia",
-            "categoria": "Obediência",
-            "narrativa": "A história de um profeta que fugiu de Deus e aprendeu sobre obediência.",
-            "capitulos": [
-                {
-                    "titulo": "A Fuga",
-                    "texto": "Deus ordena que Jonas vá a Nínive pregar. Jonas, com medo, embarca em um navio em direção oposta. Uma tempestade violenta surge no mar...",
-                    "escolhas": [
-                        "Confessar aos marinheiros que está fugindo de Deus",
-                        "Ficar calado e esperar a tempestade passar",
-                        "Pedir aos marinheiros que remem mais forte"
-                    ]
+                    "id": 2,
+                    "titulo": "Golias e o Desafio",
+                    "texto": "Os filisteus reuniram seus exércitos para a guerra contra Israel no Vale de Elá. De suas fileiras saiu um campeão chamado Golias, de Gate, que media cerca de três metros de altura. Usava um elmo de bronze, uma couraça de escamas que pesava cerca de 57 quilos, perneiras de bronze e carregava uma lança com cabo como um órgão de tecelão, cuja ponta de ferro pesava cerca de 7 quilos. Por quarenta dias, manhã e tarde, Golias avançava e desafiava: 'Escolham um homem que venha lutar comigo! Se ele vencer e me matar, seremos seus servos; mas se eu o vencer e o matar, vocês serão nossos servos.' (1 Samuel 17:8-9). Todo o exército de Israel fugia com grande medo ao ouvir essas palavras. Davi, que havia chegado ao acampamento para levar comida a seus irmãos, ouviu o desafio e indignado perguntou: 'Quem é esse filisteu incircunciso para desafiar os exércitos do Deus vivo?'",
+                    "referencia": "1 Samuel 17:1-26",
+                    "imagem": "assets/historias/davi_golias/cena2.jpg",
+                    "minijogo": {
+                        "tipo": "verdadeiro_falso",
+                        "perguntas": [
+                            {
+                                "pergunta": "Golias media cerca de três metros de altura",
+                                "resposta": true,
+                                "explicacao": "Correto! 1 Samuel 17:4 descreve Golias com 'seis côvados e um palmo', aproximadamente três metros."
+                            },
+                            {
+                                "pergunta": "Golias desafiou Israel por vinte dias",
+                                "resposta": false,
+                                "explicacao": "Errado! Golias desafiou Israel por quarenta dias, manhã e tarde (1 Samuel 17:16)."
+                            },
+                            {
+                                "pergunta": "A couraça de Golias pesava cerca de 57 quilos",
+                                "resposta": true,
+                                "explicacao": "Correto! 1 Samuel 17:5 descreve a couraça com 5.000 siclos de bronze, aproximadamente 57 kg."
+                            },
+                            {
+                                "pergunta": "Golias era de Belém",
+                                "resposta": false,
+                                "explicacao": "Errado! Golias era de Gate, uma das cinco cidades principais dos filisteus (1 Samuel 17:4)."
+                            },
+                            {
+                                "pergunta": "Davi ficou com medo ao ouvir o desafio de Golias",
+                                "resposta": false,
+                                "explicacao": "Errado! Davi ficou indignado e perguntou quem era aquele filisteu para desafiar os exércitos do Deus vivo (1 Samuel 17:26)."
+                            }
+                        ]
+                    }
                 },
                 {
-                    "titulo": "Dentro da Baleia",
-                    "texto": "Jonas é lançado ao mar e engolido por uma grande baleia. No escuro, ele reflete sobre suas escolhas e clama a Deus...",
-                    "escolhas": [
-                        "Orar e pedir perdão a Deus",
-                        "Tentar encontrar uma saída sozinho",
-                        "Desistir e aceitar o destino"
-                    ]
+                    "id": 3,
+                    "titulo": "O Confronto",
+                    "texto": "O rei Saul tentou convencer Davi a não lutar, mas Davi contou como Deus o havia livrado do leão e do urso, e disse: 'O Senhor, que me livrou da pata do leão e da pata do urso, me livrará também da mão desse filisteu.' Saul vestiu Davi com sua própria armadura, mas Davi a retirou pois não estava acostumado. Pegou seu cajado, escolheu cinco pedras lisas do riacho, colocou-as em sua bolsa de pastor e, com a funda na mão, aproximou-se de Golias. Golias desprezou Davi ao vê-lo, dizendo: 'Sou eu um cão para você vir a mim com um cajado?' Mas Davi respondeu: 'Você vem contra mim com espada, lança e dardo, mas eu venho contra você em nome do Senhor dos Exércitos, o Deus dos exércitos de Israel, a quem você desafiou.' (1 Samuel 17:45). Davi correu em direção a Golias, enfiou a mão na bolsa, tirou uma pedra, atirou com a funda e acertou Golias na testa. A pedra se enterrou em sua testa e ele caiu com o rosto em terra. Davi então tomou a espada do próprio Golias e o decapitou.",
+                    "referencia": "1 Samuel 17:32-51",
+                    "imagem": "assets/historias/davi_golias/cena3.jpg",
+                    "minijogo": {
+                        "tipo": "mira",
+                        "descricao": "Davi confiou em Deus e lançou a pedra com precisão. Clique no alvo no momento certo para acertar Golias!",
+                        "tentativas": 3
+                    }
                 }
-            ]
+            ],
+            "desafio_final": {
+                "titulo": "Desafio Final — A Ordem dos Eventos",
+                "descricao": "Você viveu a história de Davi e Golias. Agora prove que a conhece! Coloque os eventos na ordem correta.",
+                "tipo": "ordenacao",
+                "eventos": [
+                    "Samuel unge Davi como rei em Belém",
+                    "Golias desafia Israel por quarenta dias",
+                    "Davi chega ao acampamento com comida para seus irmãos",
+                    "Saul tenta vestir Davi com sua armadura",
+                    "Davi escolhe cinco pedras lisas do riacho",
+                    "Davi acerta Golias na testa com a funda",
+                    "Os filisteus fogem ao ver Golias cair"
+                ],
+                "video": "assets/historias/davi_golias/cinematico.mp4",
+                "quadrinhos": [
+                    "assets/historias/davi_golias/quadrinho1.jpg",
+                    "assets/historias/davi_golias/quadrinho2.jpg",
+                    "assets/historias/davi_golias/quadrinho3.jpg",
+                    "assets/historias/davi_golias/quadrinho4.jpg"
+                ]
+            }
         }
     ]
 }
