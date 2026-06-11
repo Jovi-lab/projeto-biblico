@@ -4,14 +4,14 @@
             "titulo": "Davi e Golias",
             "categoria": "Coragem",
             "narrativa": "A história real de um jovem pastor escolhido por Deus para enfrentar o gigante que desafiava Israel.",
-            "imagem_capa": "assets/historias/davi_golias/capa.jpg",
+            "imagem_capa": "assets/historias/davi_golias/capa.png",
             "cenas": [
                 {
                     "id": 1,
                     "titulo": "Quem foi Davi",
                     "texto": "Davi era o filho mais novo de Jessé, da tribo de Judá, natural de Belém. Enquanto seus irmãos mais velhos eram homens de guerra, Davi cuidava das ovelhas de seu pai nos campos. Era ruivo, de bela aparência e o Senhor estava com ele. Foi ungido rei pelo profeta Samuel ainda jovem, escolhido não pela aparência, mas pelo coração — pois o Senhor disse a Samuel: 'O homem vê o exterior, mas o Senhor olha para o coração.' (1 Samuel 16:7). Davi era habilidoso com a harpa e com a funda, e já havia matado leão e urso para proteger o rebanho de seu pai. Sua confiança não estava em suas próprias forças, mas em Deus, que o havia livrado de todas as feras.",
                     "referencia": "1 Samuel 16-17",
-                    "imagem": "assets/historias/davi_golias/cena1.jpg",
+                    "imagem": "assets/historias/davi_golias/cena1.png",
                     "minijogo": {
                         "tipo": "forca",
                         "versiculo_completo": "O SENHOR não vê como o homem vê, pois o homem olha para a aparência, mas o SENHOR olha para o coração",
@@ -26,7 +26,7 @@
                     "titulo": "Golias e o Desafio",
                     "texto": "Os filisteus reuniram seus exércitos para a guerra contra Israel no Vale de Elá. De suas fileiras saiu um campeão chamado Golias, de Gate, que media cerca de três metros de altura. Usava um elmo de bronze, uma couraça de escamas que pesava cerca de 57 quilos, perneiras de bronze e carregava uma lança com cabo como um órgão de tecelão, cuja ponta de ferro pesava cerca de 7 quilos. Por quarenta dias, manhã e tarde, Golias avançava e desafiava: 'Escolham um homem que venha lutar comigo! Se ele vencer e me matar, seremos seus servos; mas se eu o vencer e o matar, vocês serão nossos servos.' (1 Samuel 17:8-9). Todo o exército de Israel fugia com grande medo ao ouvir essas palavras. Davi, que havia chegado ao acampamento para levar comida a seus irmãos, ouviu o desafio e indignado perguntou: 'Quem é esse filisteu incircunciso para desafiar os exércitos do Deus vivo?'",
                     "referencia": "1 Samuel 17:1-26",
-                    "imagem": "assets/historias/davi_golias/cena2.jpg",
+                    "imagem": "assets/historias/davi_golias/cena2.png",
                     "minijogo": {
                         "tipo": "verdadeiro_falso",
                         "perguntas": [
@@ -63,7 +63,7 @@
                     "titulo": "O Confronto",
                     "texto": "O rei Saul tentou convencer Davi a não lutar, mas Davi contou como Deus o havia livrado do leão e do urso, e disse: 'O Senhor, que me livrou da pata do leão e da pata do urso, me livrará também da mão desse filisteu.' Saul vestiu Davi com sua própria armadura, mas Davi a retirou pois não estava acostumado. Pegou seu cajado, escolheu cinco pedras lisas do riacho, colocou-as em sua bolsa de pastor e, com a funda na mão, aproximou-se de Golias. Golias desprezou Davi ao vê-lo, dizendo: 'Sou eu um cão para você vir a mim com um cajado?' Mas Davi respondeu: 'Você vem contra mim com espada, lança e dardo, mas eu venho contra você em nome do Senhor dos Exércitos, o Deus dos exércitos de Israel, a quem você desafiou.' (1 Samuel 17:45). Davi correu em direção a Golias, enfiou a mão na bolsa, tirou uma pedra, atirou com a funda e acertou Golias na testa. A pedra se enterrou em sua testa e ele caiu com o rosto em terra. Davi então tomou a espada do próprio Golias e o decapitou.",
                     "referencia": "1 Samuel 17:32-51",
-                    "imagem": "assets/historias/davi_golias/cena3.jpg",
+                    "imagem": "assets/historias/davi_golias/cena3.png",
                     "minijogo": {
                         "tipo": "mira",
                         "descricao": "Davi confiou em Deus e lançou a pedra com precisão. Clique no alvo no momento certo para acertar Golias!",
