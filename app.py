@@ -114,57 +114,116 @@ def mostrar_imagem(caminho):
     return False
 
 def tela_digitada(titulo, texto, referencia=""):
+    escaped_titulo = titulo.replace("'", "\\'").replace("\n", "\\n")
+    escaped_texto = texto.replace("'", "\\'").replace("\n", "\\n")
+    escaped_ref = referencia.replace("'", "\\'")
+    altura = min(200 + len(texto) // 2, 900)
     html = f"""
-    <div style="background:#000;min-height:100vh;padding:2rem 1rem;">
-        <div id="titulo" style="font-family:'Share Tech Mono',monospace;color:#00FF41;font-size:26px;
-            text-align:center;margin-bottom:2rem;text-shadow:0 0 10px #00FF41;min-height:40px;"></div>
-        <div id="texto" style="font-family:'Share Tech Mono',monospace;color:#00FF41;font-size:17px;
-            line-height:1.9;background:#000;padding:1.5rem;border-radius:8px;
-            border:1px solid #00FF41;min-height:100px;white-space:pre-wrap;word-break:break-word;"></div>
-        <div id="ref" style="font-family:'Share Tech Mono',monospace;color:#00AA20;
-            font-size:13px;margin-top:0.75rem;min-height:20px;"></div>
-        <div id="cursor" style="display:inline-block;width:10px;height:18px;
-            background:#00FF41;margin-left:4px;animation:blink 0.7s infinite;">█</div>
-    </div>
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-    @keyframes blink {{ 0%,100%{{opacity:1}} 50%{{opacity:0}} }}
+    body {{ margin:0; padding:0; background:#000; overflow-x:hidden; }}
+    #wrap {{ background:#000; padding:1.5rem 1rem; }}
+    #titulo {{
+        font-family:'Share Tech Mono',monospace;
+        color:#00FF41;
+        font-size:26px;
+        text-align:center;
+        margin-bottom:1.5rem;
+        text-shadow:0 0 10px #00FF41;
+        min-height:40px;
+    }}
+    #caixa {{
+        font-family:'Share Tech Mono',monospace;
+        color:#00FF41;
+        font-size:17px;
+        line-height:1.9;
+        background:#000;
+        padding:1.5rem;
+        border-radius:8px;
+        border:1px solid #00FF41;
+        white-space:pre-wrap;
+        word-break:break-word;
+    }}
+    #ref {{
+        font-family:'Share Tech Mono',monospace;
+        color:#00AA20;
+        font-size:13px;
+        margin-top:0.75rem;
+    }}
     </style>
+    <div id="wrap">
+        <div id="titulo"></div>
+        <div id="caixa"></div>
+        <div id="ref"></div>
+    </div>
     <script>
     (function(){{
-        const titulo = {json.dumps(titulo)};
-        const texto = {json.dumps(texto)};
-        const ref = {json.dumps(referencia)};
+        const titulo = '{escaped_titulo}';
+        const texto = '{escaped_texto}';
+        const ref = '{escaped_ref}';
         const elTitulo = document.getElementById('titulo');
-        const elTexto = document.getElementById('texto');
+        const elCaixa = document.getElementById('caixa');
         const elRef = document.getElementById('ref');
-
         async function digitar(el, str, delay){{
             for(let c of str){{
                 el.textContent += c;
                 await new Promise(r => setTimeout(r, delay));
             }}
         }}
-
         async function run(){{
-            await digitar(elTitulo, '> ' + titulo, 60);
-            await new Promise(r => setTimeout(r, 400));
-            await digitar(elTexto, texto, 18);
+            await digitar(elTitulo, '> ' + titulo, 55);
             await new Promise(r => setTimeout(r, 300));
-            if(ref) await digitar(elRef, '> Referência: ' + ref, 30);
-            document.getElementById('cursor').style.display = 'none';
+            await digitar(elCaixa, texto, 16);
+            await new Promise(r => setTimeout(r, 200));
+            if(ref) await digitar(elRef, '> Referência: ' + ref, 25);
         }}
         run();
     }})();
     </script>
     """
-    altura = 200 + len(texto) // 2
-    st.components.v1.html(html, height=min(altura, 900), scrolling=True)
+    st.components.v1.html(html, height=altura, scrolling=False)
+
+def tela_digitada_simples(texto):
+    escaped = texto.replace("'", "\\'").replace("\n", "\\n")
+    altura = min(150 + len(texto) // 2, 800)
+    html = f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    body {{ margin:0; padding:0; background:#000; }}
+    #caixa {{
+        font-family:'Share Tech Mono',monospace;
+        color:#00FF41;
+        font-size:17px;
+        line-height:1.9;
+        background:#000;
+        padding:1.5rem;
+        border-radius:8px;
+        border:1px solid #00FF41;
+        white-space:pre-wrap;
+        word-break:break-word;
+    }}
+    </style>
+    <div id="caixa"></div>
+    <script>
+    (function(){{
+        const texto = '{escaped}';
+        const el = document.getElementById('caixa');
+        async function digitar(){{
+            for(let c of texto){{
+                el.textContent += c;
+                await new Promise(r => setTimeout(r, 16));
+            }}
+        }}
+        digitar();
+    }})();
+    </script>
+    """
+    st.components.v1.html(html, height=altura, scrolling=False)
 
 def minijogo_forca(dados):
     palavra = dados.get("palavra_oculta", "").upper()
     if not palavra:
-        st.error("Erro ao carregar o mini-jogo. Tente novamente.")
+        st.error("Erro ao carregar o mini-jogo.")
         if st.button("Recarregar"):
             st.session_state.minijogo_dados = None
             st.session_state.fase = "minijogo"
@@ -175,18 +234,13 @@ def minijogo_forca(dados):
     erros = st.session_state.forca_erros
     max_erros = 6
 
-    versiculo = dados.get("versiculo_com_lacuna", "")
-    referencia = dados.get("referencia", "")
-    dica = dados.get("dica", "")
-    versiculo_completo = dados.get("versiculo_completo", "")
-
     st.markdown(f"""
     <div class="hacker-box">
         <span class="hacker-label">> VERSÍCULO:</span><br>
-        <span class="hacker-pergunta">_{versiculo}_</span>
+        <span class="hacker-pergunta">_{dados.get("versiculo_com_lacuna","")}_</span>
     </div>
-    <div class="hacker-ref">> Ref: {referencia}</div>
-    <div class="hacker-ref">> Dica: {dica}</div>
+    <div class="hacker-ref">> Ref: {dados.get("referencia","")}</div>
+    <div class="hacker-ref">> Dica: {dados.get("dica","")}</div>
     """, unsafe_allow_html=True)
     st.divider()
 
@@ -221,7 +275,7 @@ def minijogo_forca(dados):
 
     if erros >= max_erros:
         st.error(f"Fim de jogo! A palavra era: {palavra}")
-        st.info(f"Versículo: {versiculo_completo}")
+        st.info(f"Versículo: {dados.get('versiculo_completo','')}")
         if st.button("Tentar novamente", use_container_width=True):
             st.session_state.forca_tentativas = []
             st.session_state.forca_erros = 0
@@ -243,7 +297,6 @@ def minijogo_verdadeiro_falso(dados):
         st.error("Erro ao carregar perguntas.")
         if st.button("Recarregar"):
             st.session_state.minijogo_dados = None
-            st.session_state.fase = "minijogo"
             st.rerun()
         return
 
@@ -264,8 +317,7 @@ def minijogo_verdadeiro_falso(dados):
     st.divider()
 
     if idx in respondidas:
-        correta = pergunta["resposta"]
-        if respondidas[idx] == correta:
+        if respondidas[idx] == pergunta["resposta"]:
             st.success("✅ Correto!")
         else:
             st.error("❌ Errado!")
@@ -290,7 +342,7 @@ def minijogo_mira():
     mira_html = """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-    body { background: #000; margin: 0; padding: 0; }
+    body { margin:0; padding:0; background:#000; }
     #miraContainer {
         position: relative;
         width: 100%;
@@ -299,14 +351,13 @@ def minijogo_mira():
         border-radius: 12px;
         overflow: hidden;
         border: 2px solid #00FF41;
-        background: #0a0a0a;
     }
     #bgImg {
         width: 100%;
         display: block;
-        min-height: 320px;
+        min-height: 300px;
         object-fit: cover;
-        filter: brightness(0.6) sepia(0.3);
+        filter: brightness(0.55) sepia(0.2);
     }
     #miraCanvas {
         position: absolute;
@@ -319,40 +370,19 @@ def minijogo_mira():
         border-top: 1px solid #00FF41;
         padding: 10px 16px;
         font-family: 'Share Tech Mono', monospace;
-        color: #00FF41;
-        font-size: 14px;
-        min-height: 80px;
     }
-    #miraResult { font-size: 16px; margin-bottom: 6px; min-height: 24px; }
+    #miraResult { color: #00FF41; font-size: 15px; margin-bottom: 4px; min-height: 22px; }
     #miraTent { color: #00AA20; font-size: 13px; }
-    #miraAcertou {
-        display: none;
-        background: #000;
-        border: 1px solid #00FF41;
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-        font-family: 'Share Tech Mono', monospace;
-        color: #00FF41;
-        font-size: 16px;
-        margin-top: 10px;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-    }
     </style>
 
     <div id="miraContainer">
         <img id="bgImg" src="app/static/capa_mira.png"
-             onerror="this.src='';this.style.minHeight='320px';this.style.background='#1a0800';">
+            onerror="this.style.minHeight='300px';this.style.background='#1a0800';">
         <canvas id="miraCanvas"></canvas>
     </div>
     <div id="miraInfo">
         <div id="miraResult">> Mire na cabeça do gigante e clique!</div>
         <div id="miraTent">> Tentativas restantes: 3</div>
-    </div>
-    <div id="miraAcertou">✅ ACERTOU! A pedra atingiu Golias!<br>
-        <small style="color:#00AA20;">Role a página para continuar</small>
     </div>
 
     <script>
@@ -361,62 +391,50 @@ def minijogo_mira():
         const ctx = canvas.getContext('2d');
         const res = document.getElementById('miraResult');
         const tent = document.getElementById('miraTent');
-        const acertouDiv = document.getElementById('miraAcertou');
         const bg = document.getElementById('bgImg');
 
         function syncCanvas(){
             canvas.width = bg.offsetWidth || 400;
-            canvas.height = bg.offsetHeight || 320;
+            canvas.height = bg.offsetHeight || 300;
         }
+        bg.onload = function(){ syncCanvas(); resetPos(); };
+        setTimeout(function(){ syncCanvas(); resetPos(); animar(); }, 400);
 
-        bg.onload = syncCanvas;
-        setTimeout(syncCanvas, 500);
-
-        let x, y, dx = 2.5, dy = 1.8;
-        let raio = 30, tentativas = 3, jogando = true;
+        let x=200, y=80, dx=2.5, dy=1.8;
+        let raio=28, tentativas=3, jogando=true;
 
         function resetPos(){
-            x = (canvas.width || 400) * 0.5;
-            y = (canvas.height || 320) * 0.2;
+            x = (canvas.width||400) * 0.5;
+            y = (canvas.height||300) * 0.22;
         }
-        resetPos();
 
         function desenhar(){
             if(!canvas.width) return;
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            const grad = ctx.createRadialGradient(x,y,2,x,y,raio);
-            grad.addColorStop(0,'rgba(0,255,65,0.95)');
-            grad.addColorStop(0.35,'rgba(0,200,50,0.6)');
-            grad.addColorStop(1,'rgba(0,255,65,0)');
-            ctx.beginPath();
-            ctx.arc(x,y,raio,0,Math.PI*2);
-            ctx.fillStyle=grad;
-            ctx.fill();
-            ctx.strokeStyle='#00FF41';
-            ctx.lineWidth=2;
-            ctx.stroke();
-            [raio*0.5, raio*0.75].forEach(r=>{
-                ctx.beginPath();
-                ctx.arc(x,y,r,0,Math.PI*2);
-                ctx.strokeStyle='rgba(0,255,65,0.5)';
-                ctx.lineWidth=1;
-                ctx.stroke();
+            const g = ctx.createRadialGradient(x,y,2,x,y,raio);
+            g.addColorStop(0,'rgba(0,255,65,0.95)');
+            g.addColorStop(0.4,'rgba(0,200,50,0.55)');
+            g.addColorStop(1,'rgba(0,255,65,0)');
+            ctx.beginPath(); ctx.arc(x,y,raio,0,Math.PI*2);
+            ctx.fillStyle=g; ctx.fill();
+            ctx.strokeStyle='#00FF41'; ctx.lineWidth=2; ctx.stroke();
+            [raio*0.5,raio*0.75].forEach(r=>{
+                ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+                ctx.strokeStyle='rgba(0,255,65,0.45)'; ctx.lineWidth=1; ctx.stroke();
             });
-            ctx.strokeStyle='rgba(0,255,65,0.7)';
-            ctx.lineWidth=1;
-            ctx.beginPath();ctx.moveTo(x-raio-18,y);ctx.lineTo(x+raio+18,y);ctx.stroke();
-            ctx.beginPath();ctx.moveTo(x,y-raio-18);ctx.lineTo(x,y+raio+18);ctx.stroke();
+            ctx.strokeStyle='rgba(0,255,65,0.65)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(x-raio-16,y); ctx.lineTo(x+raio+16,y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x,y-raio-16); ctx.lineTo(x,y+raio+16); ctx.stroke();
             tent.textContent = '> Tentativas restantes: ' + tentativas;
         }
 
         function animar(){
             if(!jogando) return;
-            if(!canvas.width){ setTimeout(animar,100); return; }
             x+=dx; y+=dy;
             if(x+raio>canvas.width||x-raio<0) dx=-dx;
             if(y+raio>canvas.height||y-raio<0) dy=-dy;
-            dx+=(Math.random()-0.5)*0.15;
-            dy+=(Math.random()-0.5)*0.15;
+            dx+=(Math.random()-0.5)*0.12;
+            dy+=(Math.random()-0.5)*0.12;
             dx=Math.max(-4.5,Math.min(4.5,dx));
             dy=Math.max(-3.5,Math.min(3.5,dy));
             desenhar();
@@ -426,16 +444,13 @@ def minijogo_mira():
         canvas.addEventListener('click',function(e){
             if(!jogando) return;
             const rect=canvas.getBoundingClientRect();
-            const scaleX=canvas.width/rect.width;
-            const scaleY=canvas.height/rect.height;
-            const cx=(e.clientX-rect.left)*scaleX;
-            const cy=(e.clientY-rect.top)*scaleY;
+            const sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+            const cx=(e.clientX-rect.left)*sx, cy=(e.clientY-rect.top)*sy;
             const dist=Math.sqrt((cx-x)**2+(cy-y)**2);
             if(dist<=raio){
                 jogando=false;
                 res.style.color='#00FF41';
                 res.textContent='> ⚡ ACERTOU! A pedra atingiu Golias!';
-                acertouDiv.style.display='block';
             } else {
                 tentativas--;
                 if(tentativas<=0){
@@ -448,11 +463,10 @@ def minijogo_mira():
                 }
             }
         });
-        setTimeout(()=>{ syncCanvas(); resetPos(); animar(); }, 300);
     })();
     </script>
     """
-    st.components.v1.html(mira_html, height=480)
+    st.components.v1.html(mira_html, height=420)
     st.divider()
     col1, col2 = st.columns(2)
     if col1.button("✅ Acertei!", use_container_width=True):
@@ -481,7 +495,7 @@ def minijogo_ordenacao(dados):
 
     itens = st.session_state.ordenacao_itens
     for i, evento in enumerate(itens):
-        col1, col2, col3 = st.columns([7, 1, 1])
+        col1, col2, col3 = st.columns([7,1,1])
         col1.markdown(f'<div class="hacker-ref" style="font-size:15px;">{i+1}. {evento}</div>', unsafe_allow_html=True)
         if i > 0:
             if col2.button("↑", key=f"up_{i}"):
@@ -510,7 +524,7 @@ def minijogo_ordenacao(dados):
 if st.session_state.tela == "inicio":
     capa_path = "assets/static/capa.jpg"
     if os.path.exists(capa_path):
-        st.markdown(f"""
+        st.markdown("""
         <div style="position:relative;width:100%;border-radius:12px;
             overflow:hidden;margin-bottom:1.5rem;">
             <img src="app/static/capa.jpg"
@@ -528,9 +542,6 @@ if st.session_state.tela == "inicio":
         </div>
         """, unsafe_allow_html=True)
     else:
-        img = Image.open("assets/static/capa.jpg") if os.path.exists("assets/static/capa.jpg") else None
-        if img:
-            st.image(img, use_container_width=True)
         st.title("✝ Projeto Bíblico")
 
     st.markdown('<div class="hacker-label">> ESCOLHA UMA HISTÓRIA:</div>', unsafe_allow_html=True)
@@ -541,8 +552,8 @@ if st.session_state.tela == "inicio":
             col1, col2 = st.columns([1, 3])
             with col1:
                 imagem_capa = h.get("imagem_capa", "")
-                if not (imagem_capa and os.path.exists(imagem_capa) and st.image(Image.open(imagem_capa), use_container_width=True) is None):
-                    st.markdown('<p style="font-size:40px;text-align:center;color:#00FF41;">✝</p>', unsafe_allow_html=True)
+                if imagem_capa and os.path.exists(imagem_capa):
+                    st.image(Image.open(imagem_capa), use_container_width=True)
             with col2:
                 st.markdown(f'<p style="font-family:Share Tech Mono,monospace;color:#00FF41;font-size:20px;margin:0;">{h["titulo"]}</p>', unsafe_allow_html=True)
                 st.caption(h["categoria"])
@@ -570,10 +581,8 @@ elif st.session_state.tela == "cena":
     cena = cenas[idx]
     fase = st.session_state.fase
 
-    # Navegação
     st.markdown(f'<div class="hacker-nav">> {historia["titulo"]} — Cena {idx+1} de {len(cenas)}</div>', unsafe_allow_html=True)
 
-    # FASE: texto
     if fase == "texto":
         tela_digitada(cena["titulo"], cena["texto"], cena["referencia"])
         st.divider()
@@ -595,7 +604,6 @@ elif st.session_state.tela == "cena":
             st.session_state.fase = "minijogo"
             st.rerun()
 
-    # FASE: minijogo
     elif fase == "minijogo":
         tipo = cena["minijogo"]["tipo"]
         st.markdown(f'<div class="hacker-title">> Mini-jogo — {cena["titulo"]}</div>', unsafe_allow_html=True)
@@ -608,7 +616,6 @@ elif st.session_state.tela == "cena":
         elif tipo == "mira":
             minijogo_mira()
 
-    # FASE: imagem pós-minijogo
     elif fase == "proxima":
         st.markdown(f'<div class="hacker-title">> {cena["titulo"]}</div>', unsafe_allow_html=True)
         st.divider()
@@ -645,7 +652,8 @@ elif st.session_state.tela == "desafio_final":
             with st.spinner("Gerando narrativa final..."):
                 st.session_state.final_epico = ia.gerar_final_epico(historia["titulo"])
 
-        st.markdown(f'<div class="hacker-text">{st.session_state.final_epico}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hacker-title">> Narrativa Final</div>', unsafe_allow_html=True)
+        tela_digitada_simples(st.session_state.final_epico)
         st.divider()
 
         st.markdown('<div class="hacker-label">> VÍDEO CINEMÁTICO:</div>', unsafe_allow_html=True)
@@ -657,16 +665,20 @@ elif st.session_state.tela == "desafio_final":
 
         st.divider()
         st.markdown('<div class="hacker-label">> HISTÓRIA EM QUADRINHOS:</div>', unsafe_allow_html=True)
-        quadrinhos = desafio.get("quadrinhos", [])
-        cols = st.columns(2)
-        for i, q in enumerate(quadrinhos):
-            with cols[i % 2]:
-                if os.path.exists(q):
-                    st.image(Image.open(q), use_container_width=True)
-                else:
-                    st.info(f"Quadrinho {i+1} em breve.")
-        st.divider()
 
+        cenas = historia.get("cenas", [])
+        imagens_cenas = [c.get("imagem","") for c in cenas if c.get("imagem","")]
+
+        if imagens_cenas:
+            cols = st.columns(2)
+            for i, img_path in enumerate(imagens_cenas):
+                with cols[i % 2]:
+                    if os.path.exists(img_path):
+                        st.image(Image.open(img_path), use_container_width=True)
+        else:
+            st.info("🖼️ Imagens em breve.")
+
+        st.divider()
         if st.button("← Voltar ao início", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
