@@ -5,6 +5,15 @@
             "categoria": "Coragem",
             "narrativa": "A história real de um jovem pastor escolhido por Deus para enfrentar o gigante que desafiava Israel.",
             "imagem_capa": "assets/historias/davi_golias/capa.png",
+            "tema": {
+                "fundo": "#1a0e00",
+                "cor_primaria": "#C9A84C",
+                "cor_texto": "#F5E6C8",
+                "cor_borda": "#8B6914",
+                "fonte": "Cinzel",
+                "fonte_url": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap",
+                "atmosfera": "pergaminho"
+            },
             "cenas": [
                 {
                     "id": 1,
@@ -91,6 +100,81 @@
                     "assets/historias/davi_golias/quadrinho3.jpg",
                     "assets/historias/davi_golias/quadrinho4.jpg"
                 ]
+            }
+        },
+        {
+            "titulo": "Noe e o Diluvio",
+            "categoria": "Obediencia",
+            "narrativa": "Historia em desenvolvimento para uma futura aventura narrativa.",
+            "imagem_capa": "",
+            "tema": {
+                "fundo": "#20140b",
+                "cor_primaria": "#B8914A",
+                "cor_texto": "#F4E4C5",
+                "cor_borda": "#7E6232",
+                "fonte": "Cinzel",
+                "fonte_url": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap",
+                "atmosfera": "pergaminho"
+            },
+            "bloqueada": true,
+            "cenas": [],
+            "desafio_final": {
+                "titulo": "Em breve",
+                "descricao": "Esta historia ainda sera implementada.",
+                "tipo": "ordenacao",
+                "eventos": [],
+                "video": "",
+                "quadrinhos": []
+            }
+        },
+        {
+            "titulo": "Jonas e a Baleia",
+            "categoria": "Misericordia",
+            "narrativa": "Historia em desenvolvimento para uma futura aventura narrativa.",
+            "imagem_capa": "",
+            "tema": {
+                "fundo": "#03131f",
+                "cor_primaria": "#58D6C9",
+                "cor_texto": "#D6FFF8",
+                "cor_borda": "#1D7E8A",
+                "fonte": "Philosopher",
+                "fonte_url": "https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&display=swap",
+                "atmosfera": "oceano"
+            },
+            "bloqueada": true,
+            "cenas": [],
+            "desafio_final": {
+                "titulo": "Em breve",
+                "descricao": "Esta historia ainda sera implementada.",
+                "tipo": "ordenacao",
+                "eventos": [],
+                "video": "",
+                "quadrinhos": []
+            }
+        },
+        {
+            "titulo": "Moises e o Exodo",
+            "categoria": "Libertacao",
+            "narrativa": "Historia em desenvolvimento para uma futura aventura narrativa.",
+            "imagem_capa": "",
+            "tema": {
+                "fundo": "#2B1606",
+                "cor_primaria": "#E48A3A",
+                "cor_texto": "#FFE8C2",
+                "cor_borda": "#9D3B24",
+                "fonte": "Cinzel",
+                "fonte_url": "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap",
+                "atmosfera": "exodo"
+            },
+            "bloqueada": true,
+            "cenas": [],
+            "desafio_final": {
+                "titulo": "Em breve",
+                "descricao": "Esta historia ainda sera implementada.",
+                "tipo": "ordenacao",
+                "eventos": [],
+                "video": "",
+                "quadrinhos": []
             }
         }
     ]
