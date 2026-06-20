@@ -1,10 +1,11 @@
 {
     "historias": [
         {
-            "titulo": "Davi e Golias",
+            "titulo": "Davi",
             "categoria": "Coragem",
             "narrativa": "A história real de um jovem pastor escolhido por Deus para enfrentar o gigante que desafiava Israel.",
             "imagem_capa": "assets/historias/davi_golias/capa.png",
+            "modo": "rpg",
             "tema": {
                 "fundo": "#1a0e00",
                 "cor_primaria": "#C9A84C",
@@ -21,14 +22,7 @@
                     "texto": "Davi era o filho mais novo de Jessé, da tribo de Judá, natural de Belém. Enquanto seus irmãos mais velhos eram homens de guerra, Davi cuidava das ovelhas de seu pai nos campos. Era ruivo, de bela aparência e o Senhor estava com ele. Foi ungido rei pelo profeta Samuel ainda jovem, escolhido não pela aparência, mas pelo coração — pois o Senhor disse a Samuel: 'O homem vê o exterior, mas o Senhor olha para o coração.' (1 Samuel 16:7). Davi era habilidoso com a harpa e com a funda, e já havia matado leão e urso para proteger o rebanho de seu pai. Sua confiança não estava em suas próprias forças, mas em Deus, que o havia livrado de todas as feras.",
                     "referencia": "1 Samuel 16-17",
                     "imagem": "assets/historias/davi_golias/cena1.png",
-                    "minijogo": {
-                        "tipo": "forca",
-                        "versiculo_completo": "O SENHOR não vê como o homem vê, pois o homem olha para a aparência, mas o SENHOR olha para o coração",
-                        "referencia": "1 Samuel 16:7",
-                        "dica": "Este versículo explica por que Deus escolheu Davi em vez de seus irmãos mais altos e fortes.",
-                        "palavra_oculta": "CORAÇÃO",
-                        "versiculo_com_lacuna": "O SENHOR não vê como o homem vê, pois o homem olha para a aparência, mas o SENHOR olha para o ___"
-                    }
+                    "evento_rpg": "mensageiro_rebanho"
                 },
                 {
                     "id": 2,
@@ -36,36 +30,7 @@
                     "texto": "Os filisteus reuniram seus exércitos para a guerra contra Israel no Vale de Elá. De suas fileiras saiu um campeão chamado Golias, de Gate, que media cerca de três metros de altura. Usava um elmo de bronze, uma couraça de escamas que pesava cerca de 57 quilos, perneiras de bronze e carregava uma lança com cabo como um órgão de tecelão, cuja ponta de ferro pesava cerca de 7 quilos. Por quarenta dias, manhã e tarde, Golias avançava e desafiava: 'Escolham um homem que venha lutar comigo! Se ele vencer e me matar, seremos seus servos; mas se eu o vencer e o matar, vocês serão nossos servos.' (1 Samuel 17:8-9). Todo o exército de Israel fugia com grande medo ao ouvir essas palavras. Davi, que havia chegado ao acampamento para levar comida a seus irmãos, ouviu o desafio e indignado perguntou: 'Quem é esse filisteu incircunciso para desafiar os exércitos do Deus vivo?'",
                     "referencia": "1 Samuel 17:1-26",
                     "imagem": "assets/historias/davi_golias/cena2.png",
-                    "minijogo": {
-                        "tipo": "verdadeiro_falso",
-                        "perguntas": [
-                            {
-                                "pergunta": "Golias media cerca de três metros de altura",
-                                "resposta": true,
-                                "explicacao": "Correto! 1 Samuel 17:4 descreve Golias com 'seis côvados e um palmo', aproximadamente três metros."
-                            },
-                            {
-                                "pergunta": "Golias desafiou Israel por vinte dias",
-                                "resposta": false,
-                                "explicacao": "Errado! Golias desafiou Israel por quarenta dias, manhã e tarde (1 Samuel 17:16)."
-                            },
-                            {
-                                "pergunta": "A couraça de Golias pesava cerca de 57 quilos",
-                                "resposta": true,
-                                "explicacao": "Correto! 1 Samuel 17:5 descreve a couraça com 5.000 siclos de bronze, aproximadamente 57 kg."
-                            },
-                            {
-                                "pergunta": "Golias era de Belém",
-                                "resposta": false,
-                                "explicacao": "Errado! Golias era de Gate, uma das cinco cidades principais dos filisteus (1 Samuel 17:4)."
-                            },
-                            {
-                                "pergunta": "Davi ficou com medo ao ouvir o desafio de Golias",
-                                "resposta": false,
-                                "explicacao": "Errado! Davi ficou indignado e perguntou quem era aquele filisteu para desafiar os exércitos do Deus vivo (1 Samuel 17:26)."
-                            }
-                        ]
-                    }
+                    "evento_rpg": "acampamento_israel"
                 },
                 {
                     "id": 3,
@@ -82,7 +47,7 @@
             ],
             "desafio_final": {
                 "titulo": "Desafio Final — A Ordem dos Eventos",
-                "descricao": "Você viveu a história de Davi e Golias. Agora prove que a conhece! Coloque os eventos na ordem correta.",
+                "descricao": "Você viveu a história de Davi. Agora prove que a conhece! Coloque os eventos na ordem correta.",
                 "tipo": "ordenacao",
                 "eventos": [
                     "Samuel unge Davi como rei em Belém",
@@ -103,7 +68,7 @@
             }
         },
         {
-            "titulo": "Noe e o Diluvio",
+            "titulo": "Noé",
             "categoria": "Obediencia",
             "narrativa": "Historia em desenvolvimento para uma futura aventura narrativa.",
             "imagem_capa": "",
@@ -128,7 +93,7 @@
             }
         },
         {
-            "titulo": "Jonas e a Baleia",
+            "titulo": "Jonas",
             "categoria": "Misericordia",
             "narrativa": "Historia em desenvolvimento para uma futura aventura narrativa.",
             "imagem_capa": "",
@@ -153,7 +118,7 @@
             }
         },
         {
-            "titulo": "Moises e o Exodo",
+            "titulo": "Moisés",
             "categoria": "Libertacao",
             "narrativa": "Historia em desenvolvimento para uma futura aventura narrativa.",
             "imagem_capa": "",
