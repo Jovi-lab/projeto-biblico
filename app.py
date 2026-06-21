@@ -886,6 +886,10 @@ def tela_rpg_davi(historia, tema):
       let hint = '';
       let toast = '';
       let toastTimer = 0;
+      let assetsReady = false;
+      let fadeAlpha = 0;
+      let fadeDirection = 0;
+      let onFadeComplete = null;
       let flash = 0;
       let anoint = 0;
       let armor = 0;
@@ -898,12 +902,15 @@ def tela_rpg_davi(historia, tema):
         herdDone: false,
         samuel: false,
         anointed: false,
+        brothersLeft: false,
         basket: false,
         eliabe: false,
         soldier: false,
         saul: false,
         armorRefused: false,
         stones: false,
+        campCutscene: false,
+        valleyCutscene: false,
         finalDialog: false,
         goliathDown: false,
         completed: false
@@ -911,15 +918,70 @@ def tela_rpg_davi(historia, tema):
 
       const areas = [
         { name: 'Pasto de Belém', objective: 'Fale com o mensageiro de Jessé.', ground: '#796a31', path: '#bd9656', edge: '#4f3d1e' },
+        { name: 'Frente da Casa de Jessé', objective: 'Entre na casa para encontrar Samuel.', ground: '#7d552c', path: '#cda363', edge: '#3b2413' },
         { name: 'Casa de Jessé', objective: 'Ouça Samuel e receba a missão de Jessé.', ground: '#75502c', path: '#cda363', edge: '#3b2413' },
         { name: 'Acampamento de Israel', objective: 'Procure Eliabe, o soldado e Saul. Depois escolha as pedras.', ground: '#93713e', path: '#d1aa66', edge: '#4d3720' },
         { name: 'Vale de Elá', objective: 'Enfrente Golias confiando no Senhor.', ground: '#9b7b43', path: '#d8b068', edge: '#56341f' }
       ];
 
-      const sheep = [
-        {x:210,y:150,vx:.55,vy:.2,in:false},{x:325,y:205,vx:-.35,vy:.45,in:false},
-        {x:470,y:138,vx:.35,vy:-.32,in:false},{x:555,y:275,vx:-.42,vy:.2,in:false},
-        {x:260,y:410,vx:.25,vy:-.35,in:false}
+      const assetUrls = {
+        backgrounds: {
+          0: 'app/static/rpg/davi/curral.png',
+          1: 'app/static/rpg/davi/exterior_casa.png',
+          2: 'app/static/rpg/davi/interior_casa.png'
+        },
+        portraits: {
+          Samuel: 'app/static/rpg/davi/portraits/samuel.png',
+          Davi: 'app/static/rpg/davi/portraits/davi_pastor.png',
+          Golias: 'app/static/rpg/davi/portraits/golias.png',
+          'Davi Guerreiro': 'app/static/rpg/davi/portraits/davi_guerreiro.png'
+        },
+        sprites: {
+          davi: 'app/static/rpg/davi/sprite_davi.png',
+          golias: 'app/static/rpg/davi/sprite_golias.png'
+        },
+        cutscenes: {
+          soldados: 'app/static/rpg/davi/cutscenes/soldados_fugindo.png',
+          duelo: 'app/static/rpg/davi/cutscenes/davi_golias.png'
+        }
+      };
+      const assets = { backgrounds: {}, portraits: {}, sprites: {}, cutscenes: {}, processed: {} };
+      let cutscene = { key: '', title: '', lines: [], index: 0, shown: 0, done: null };
+
+      function loadImage(src){
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = src;
+        });
+      }
+
+      async function preloadAssets(){
+        const jobs = [];
+        for (const [key, src] of Object.entries(assetUrls.backgrounds)) {
+          jobs.push(loadImage(src).then(img => assets.backgrounds[key] = img));
+        }
+        for (const [key, src] of Object.entries(assetUrls.portraits)) {
+          jobs.push(loadImage(src).then(img => assets.portraits[key] = img));
+        }
+        for (const [key, src] of Object.entries(assetUrls.sprites)) {
+          jobs.push(loadImage(src).then(img => assets.sprites[key] = img));
+        }
+        for (const [key, src] of Object.entries(assetUrls.cutscenes)) {
+          jobs.push(loadImage(src).then(img => assets.cutscenes[key] = img));
+        }
+        await Promise.all(jobs);
+        if (assets.sprites.golias) assets.processed.golias = removeWhiteBackground(assets.sprites.golias);
+        assetsReady = true;
+      }
+      preloadAssets();
+
+      const herdSpots = [
+        {x:214,y:116,gathered:false},
+        {x:156,y:169,gathered:false},
+        {x:324,y:184,gathered:false},
+        {x:408,y:112,gathered:false}
       ];
       const stones = [
         {x:190,y:160,r:16,smooth:true,hit:false},{x:310,y:130,r:18,smooth:false,hit:false},
@@ -946,6 +1008,11 @@ def tela_rpg_davi(historia, tema):
         typed = { npc, color: color || theme.primary, lines, index: 0, shown: 0, done };
       }
 
+      function startCutscene(key, title, lines, done){
+        mode = 'cutscene';
+        cutscene = { key, title, lines, index: 0, shown: 0, done };
+      }
+
       function currentLine(){ return typed.lines[typed.index] || ''; }
       function advanceDialog(){
         const line = currentLine();
@@ -960,6 +1027,19 @@ def tela_rpg_davi(historia, tema):
         }
       }
 
+      function currentCutsceneLine(){ return cutscene.lines[cutscene.index] || ''; }
+      function advanceCutscene(){
+        const line = currentCutsceneLine();
+        if (cutscene.shown < line.length) { cutscene.shown = line.length; return; }
+        cutscene.index += 1;
+        cutscene.shown = 0;
+        if (cutscene.index >= cutscene.lines.length) {
+          const done = cutscene.done;
+          mode = 'explore';
+          if (done) done();
+        }
+      }
+
       function startIntro(){
         startDialog('Narrador', theme.primary, [
           'Belém ainda desperta sob o sol do campo.',
@@ -969,21 +1049,108 @@ def tela_rpg_davi(historia, tema):
       }
 
       function moveArea(next){
-        area = next;
-        player.x = 90;
-        player.y = 318;
-        mode = 'explore';
-        notify(areas[area].name);
+        startTransition(() => {
+          area = next;
+          const starts = {
+            1: {x: 455, y: 425},
+            2: {x: 458, y: 404},
+            3: {x: 92, y: 318},
+            4: {x: 118, y: 305}
+          };
+          player.x = (starts[next] || {x: 92}).x;
+          player.y = (starts[next] || {y: 318}).y;
+          mode = 'explore';
+          notify(areas[area].name);
+          if (next === 3 && !flags.campCutscene) {
+            flags.campCutscene = true;
+            startCutscene('soldados', 'O Desafio de Golias', [
+              'Ao chegar ao acampamento, Davi vê os homens de Israel recuarem.',
+              'O gigante filisteu volta a desafiar o exército do Deus vivo.',
+              'O medo se espalha entre os soldados.'
+            ], () => { mode = 'explore'; });
+          }
+          if (next === 4 && !flags.valleyCutscene) {
+            flags.valleyCutscene = true;
+            startCutscene('duelo', 'O Vale de Elá', [
+              'Davi desce ao vale com a funda na mão.',
+              'Golias avança, armado e confiante em sua força.',
+              'Davi confia no nome do Senhor dos Exércitos.'
+            ], () => { mode = 'explore'; });
+          }
+        });
+      }
+
+      function startTransition(callback){
+        fadeDirection = 1;
+        onFadeComplete = callback;
+      }
+
+      function updateFade(){
+        if (fadeDirection === 0) return;
+        fadeAlpha += fadeDirection * 0.055;
+        if (fadeAlpha >= 1) {
+          fadeAlpha = 1;
+          fadeDirection = -1;
+          if (onFadeComplete) {
+            onFadeComplete();
+            onFadeComplete = null;
+          }
+        }
+        if (fadeAlpha <= 0) {
+          fadeAlpha = 0;
+          fadeDirection = 0;
+        }
       }
 
       function dist(a,b){ return Math.hypot((a.x+a.w/2)-b.x, (a.y+a.h/2)-b.y); }
       function near(x,y,range=58){ return Math.hypot(player.x + player.w/2 - x, player.y + player.h/2 - y) < range; }
+      function pointInRect(px, py, r){ return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h; }
+      function hasImageBackground(index=area){ return assetsReady && Boolean(assets.backgrounds[index]); }
+      function canWalk(nx, ny){
+        const foot = { x: nx + player.w / 2, y: ny + player.h };
+        if (foot.x < 22 || foot.x > W - 22 || foot.y < 72 || foot.y > H - 22) return false;
+        const blocked = [];
+        if (area === 0) {
+          blocked.push(
+            {x:690,y:360,w:260,h:170}, // margem do rio
+            {x:78,y:150,w:28,h:38}, {x:504,y:125,w:28,h:42},
+            {x:733,y:86,w:144,h:20}, {x:875,y:90,w:24,h:165},
+            {x:610,y:118,w:26,h:132}, {x:638,y:235,w:138,h:24}, {x:812,y:235,w:92,h:24}
+          );
+        }
+        if (area === 1) {
+          blocked.push(
+            {x:80,y:180,w:120,h:190}, {x:720,y:160,w:135,h:235},
+            {x:420,y:245,w:150,h:105}, {x:535,y:290,w:145,h:110}
+          );
+        }
+        if (area === 2) {
+          if (foot.x < 178 || foot.x > 790 || foot.y < 105 || foot.y > 470) return false;
+          blocked.push(
+            {x:276,y:108,w:130,h:132}, {x:178,y:250,w:100,h:76}, {x:560,y:95,w:150,h:104},
+            {x:560,y:330,w:96,h:88}, {x:190,y:378,w:90,h:90}
+          );
+        }
+        if (area === 3) {
+          blocked.push(
+            {x:100,y:120,w:72,h:72}, {x:195,y:168,w:72,h:72}, {x:292,y:120,w:72,h:72},
+            {x:386,y:168,w:72,h:72}, {x:482,y:120,w:72,h:72}, {x:602,y:122,w:185,h:142},
+            {x:660,y:388,w:290,h:70}
+          );
+        }
+        if (area === 4) {
+          blocked.push({x:0,y:55,w:42,h:505}, {x:918,y:55,w:42,h:505}, {x:620,y:80,w:300,h:92});
+        }
+        return !blocked.some(r => pointInRect(foot.x, foot.y, r));
+      }
 
       function interact(){
         if (mode === 'intro') { startIntro(); return; }
         if (mode === 'dialog') { advanceDialog(); return; }
+        if (mode === 'cutscene') { advanceCutscene(); return; }
         if (mode === 'final') { return; }
-        if (mode === 'herd' || mode === 'stones' || mode === 'aim') return;
+        if (mode === 'herd') { gatherNearbySheep(); return; }
+        if (mode === 'stones' || mode === 'aim') return;
 
         if (area === 0) {
           if (!flags.messenger && near(270,270)) {
@@ -998,24 +1165,39 @@ def tela_rpg_davi(historia, tema):
         }
 
         if (area === 1) {
+          if (near(492, 350, 90)) moveArea(2);
+        }
+
+        if (area === 2) {
           if (!flags.samuel && near(510,215)) {
             startDialog('Samuel', theme.primary, [
               'O Senhor não vê como o homem vê.',
               'Pois o homem olha para a aparência.',
               'Mas o Senhor olha para o coração. (1 Samuel 16:7)'
-            ], () => { flags.samuel = true; flags.anointed = true; anoint = 120; });
+            ], () => {
+              flags.samuel = true;
+              flags.anointed = true;
+              anoint = 120;
+              startDialog('Narrador', theme.primary, [
+                'Samuel unge Davi no meio de seus irmãos.',
+                'Com o passar dos dias, Eliabe, Abinadabe e Samá seguem para o acampamento de Israel.',
+                'Na casa, Jessé chama Davi novamente.'
+              ], () => { flags.brothersLeft = true; });
+            });
             return;
           }
-          if (flags.anointed && !flags.basket && near(325,300)) {
+          if (flags.brothersLeft && !flags.basket && near(325,300)) {
             startDialog('Jessé', '#E8D3A4', [
-              'Davi, leve este cesto com comida para seus irmãos no acampamento de Israel.'
+              'Davi, seus irmãos estão no acampamento de Israel.',
+              'Leve este cesto com alimento e veja como eles estão.',
+              'Depois volte e me traga notícias.'
             ], () => { flags.basket = true; player.basket = true; });
             return;
           }
-          if (flags.basket && player.x > 860) moveArea(2);
+          if (flags.basket && near(480,430,100)) moveArea(3);
         }
 
-        if (area === 2) {
+        if (area === 3) {
           if (!flags.eliabe && near(285,260)) {
             startDialog('Eliabe', '#D9B076', [
               'Por que desceste aqui?',
@@ -1037,10 +1219,10 @@ def tela_rpg_davi(historia, tema):
             return;
           }
           if (flags.saul && !flags.stones && near(765,430,76)) { startStones(); return; }
-          if (flags.stones && player.x > 860) moveArea(3);
+          if (flags.stones && player.x > 860) moveArea(4);
         }
 
-        if (area === 3) {
+        if (area === 4) {
           if (!flags.finalDialog && near(730,245,110)) {
             startDialog('Golias', '#B86E52', [
               'Sou eu um cão para você vir a mim com um cajado?',
@@ -1054,36 +1236,33 @@ def tela_rpg_davi(historia, tema):
       function startHerd(){
         mode = 'herd';
         herdStart = performance.now();
+        herdSpots.forEach(s => s.gathered = false);
         player.x = 150; player.y = 280;
         post('minigame_started', { name: 'guardar_rebanho' });
       }
 
-      function updateHerd(dt){
-        const pen = {x:720,y:86,w:170,h:140};
-        for (const s of sheep) {
-          const px = player.x + player.w/2, py = player.y + player.h/2;
-          const d = Math.hypot(px - s.x, py - s.y);
-          if (d < 44) {
-            s.vx += (s.x - px) / Math.max(1,d) * .22;
-            s.vy += (s.y - py) / Math.max(1,d) * .22;
+      function gatherNearbySheep(){
+        let changed = false;
+        for (const s of herdSpots) {
+          if (!s.gathered && near(s.x, s.y, 62)) {
+            s.gathered = true;
+            changed = true;
           }
-          s.x += s.vx; s.y += s.vy;
-          s.vx *= .96; s.vy *= .96;
-          if (s.x < 50 || s.x > 910) s.vx *= -1;
-          if (s.y < 70 || s.y > 500) s.vy *= -1;
-          s.x = Math.max(40, Math.min(920, s.x));
-          s.y = Math.max(60, Math.min(510, s.y));
-          s.in = s.x > pen.x && s.x < pen.x + pen.w && s.y > pen.y && s.y < pen.y + pen.h;
         }
-        const elapsed = (performance.now() - herdStart) / 1000;
-        if (sheep.every(s => s.in)) {
+        if (changed) notify('Ovelha reunida ao rebanho.');
+        if (herdSpots.every(s => s.gathered)) {
           flags.herdDone = true;
           mode = 'explore';
           post('minigame_completed', { name: 'guardar_rebanho' });
-          startDialog('Davi', theme.primary, ['O rebanho está reunido. Agora posso ir à casa de meu pai.'], null);
-        } else if (elapsed > 30) {
-          notify('Tente de novo: reúna as ovelhas com calma.');
-          sheep.forEach((s,i) => { s.x = 210 + i*70; s.y = 150 + (i%2)*120; s.vx = .4; s.vy = .3; s.in = false; });
+          startDialog('Davi', theme.primary, ['O rebanho está sob cuidado. Agora posso ir à casa de meu pai.'], null);
+        }
+      }
+
+      function updateHerd(dt){
+        gatherNearbySheep();
+        const herdElapsed = (performance.now() - herdStart) / 1000;
+        if (herdElapsed > 45 && !herdSpots.every(s => s.gathered)) {
+          notify('Aproxime-se das ovelhas destacadas no pasto.');
           herdStart = performance.now();
         }
       }
@@ -1142,9 +1321,14 @@ def tela_rpg_davi(historia, tema):
 
       function update(dt){
         hint = '';
+        updateFade();
         if (mode === 'intro') return;
         if (mode === 'dialog') {
           typed.shown = Math.min(currentLine().length, typed.shown + dt * .045);
+          return;
+        }
+        if (mode === 'cutscene') {
+          cutscene.shown = Math.min(currentCutsceneLine().length, cutscene.shown + dt * .045);
           return;
         }
         if (mode === 'final') return;
@@ -1157,8 +1341,10 @@ def tela_rpg_davi(historia, tema):
           if (keys.ArrowDown || keys.s) dy += 1;
           if (dx || dy) {
             const len = Math.hypot(dx,dy);
-            player.x += dx / len * player.speed;
-            player.y += dy / len * player.speed;
+            const nx = player.x + dx / len * player.speed;
+            const ny = player.y + dy / len * player.speed;
+            if (canWalk(nx, player.y)) player.x = nx;
+            if (canWalk(player.x, ny)) player.y = ny;
             player.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
           }
           player.x = Math.max(24, Math.min(W-44, player.x));
@@ -1185,6 +1371,27 @@ def tela_rpg_davi(historia, tema):
         ctx.fillText(text, x, y);
       }
       function rect(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
+      function drawCoverImage(img){
+        const scale = Math.max(W / img.width, (H - 55) / img.height);
+        const dw = img.width * scale;
+        const dh = img.height * scale;
+        const dx = (W - dw) / 2;
+        const dy = 55 + ((H - 55) - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+      }
+      function removeWhiteBackground(img){
+        const off = document.createElement('canvas');
+        off.width = img.width;
+        off.height = img.height;
+        const octx = off.getContext('2d');
+        octx.drawImage(img, 0, 0);
+        const data = octx.getImageData(0, 0, off.width, off.height);
+        for (let i = 0; i < data.data.length; i += 4) {
+          if (data.data[i] > 240 && data.data[i+1] > 240 && data.data[i+2] > 240) data.data[i+3] = 0;
+        }
+        octx.putImageData(data, 0, 0);
+        return off;
+      }
       function ellipse(x,y,rx,ry,c,stroke){
         ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
         ctx.fillStyle=c; ctx.fill();
@@ -1207,7 +1414,15 @@ def tela_rpg_davi(historia, tema):
         }
         ellipse(x+sw/2,y+sh*.23,sw*.25,sh*.21,'#C98D5A','rgba(53,29,10,.45)');
         rect(x+sw*.28,y+sh*.12,sw*.44,sh*.08,'#37200c');
-        drawText(label, x+sw/2, y+sh*.70, 13*scale, opts.text || '#231404', 'center');
+        rect(x+sw*.28,y+sh*.66,sw*.44,Math.max(2, 3*scale),'rgba(43,24,9,.42)');
+        ctx.strokeStyle = 'rgba(255,234,180,.35)';
+        ctx.lineWidth = Math.max(1, 1.2 * scale);
+        ctx.beginPath();
+        ctx.moveTo(x+sw*.35,y+sh*.43);
+        ctx.lineTo(x+sw*.25,y+sh*.62);
+        ctx.moveTo(x+sw*.65,y+sh*.43);
+        ctx.lineTo(x+sw*.75,y+sh*.62);
+        ctx.stroke();
       }
       function npc(x,y,c,label,name,opts={}){
         sprite(x-15,y-24,30,42,c,label,1,opts);
@@ -1228,23 +1443,143 @@ def tela_rpg_davi(historia, tema):
         ctx.fillStyle=color; ctx.fill(); ctx.strokeStyle='#5a371b'; ctx.lineWidth=2; ctx.stroke();
         rect(x+29,y+30,12,22,'#3b2111');
       }
+      function drawDavi(){
+        const x = player.x;
+        const y = player.y;
+        const cx = x + player.w / 2;
+        const isPastor = area < 3 && !player.basket;
+        ellipse(cx, y + 40, 14, 5, 'rgba(0,0,0,.24)');
+        ctx.save();
+        ctx.lineWidth = 1.5;
+
+        if (isPastor) {
+          ctx.strokeStyle = '#6d4927';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x + 5, y + 10);
+          ctx.lineTo(x + 4, y + 39);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x + 8, y + 11, 5, Math.PI * 1.05, Math.PI * 2.1);
+          ctx.stroke();
+        }
+
+        roundRect(x + 8, y + 15, 17, 23, 6, isPastor ? '#b8823c' : '#9a6632', 'rgba(52,29,11,.55)');
+        ctx.beginPath();
+        ctx.moveTo(x + 10, y + 17);
+        ctx.lineTo(x + 23, y + 17);
+        ctx.lineTo(x + 21, y + 37);
+        ctx.lineTo(x + 11, y + 37);
+        ctx.closePath();
+        ctx.fillStyle = isPastor ? '#7f4c22' : '#6f3d20';
+        ctx.fill();
+        rect(x + 10, y + 27, 13, 3, 'rgba(58,32,13,.5)');
+
+        ellipse(cx, y + 10, 9, 8, '#c98d5a', 'rgba(53,29,10,.45)');
+        ctx.beginPath();
+        ctx.arc(cx, y + 8, 9, Math.PI, Math.PI * 2);
+        ctx.fillStyle = '#3a220f';
+        ctx.fill();
+        ellipse(cx - 3, y + 10, 1.2, 1.2, '#241307');
+        ellipse(cx + 3, y + 10, 1.2, 1.2, '#241307');
+        rect(x + 10, y + 38, 5, 7, '#3a2414');
+        rect(x + 19, y + 38, 5, 7, '#3a2414');
+
+        ctx.strokeStyle = '#4b2b14';
+        ctx.beginPath();
+        ctx.moveTo(x + 9, y + 22);
+        ctx.lineTo(x + 5, y + 29);
+        ctx.moveTo(x + 24, y + 22);
+        ctx.lineTo(x + 28, y + 29);
+        ctx.stroke();
+
+        if (player.basket) {
+          roundRect(x + 23, y + 23, 17, 13, 4, '#c59043', '#6b411d');
+          ctx.strokeStyle = '#6b411d';
+          ctx.beginPath();
+          ctx.arc(x + 31, y + 23, 7, Math.PI, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      function drawGoliath(x,y){
+        const img = assets.processed.golias || assets.sprites.golias;
+        if (assetsReady && img) {
+          ellipse(x+47, y+132, 54, 12, 'rgba(0,0,0,.25)');
+          ctx.drawImage(img, x-12, y-8, 120, 150);
+          return;
+        }
+        sprite(x, y, 58, 76, '#8E4C38', 'G', 1.6, {mantle:'#4a1d17', text:'#f4d6b5'});
+      }
+
+      function drawHerdMarkers(){
+        const pulse = 1 + Math.sin(performance.now() / 260) * .08;
+        for (const s of herdSpots) {
+          ctx.save();
+          ctx.lineWidth = s.gathered ? 3 : 2;
+          ctx.strokeStyle = s.gathered ? 'rgba(145,220,120,.82)' : 'rgba(245,211,100,.72)';
+          ctx.fillStyle = s.gathered ? 'rgba(70,130,55,.16)' : 'rgba(245,211,100,.10)';
+          ctx.beginPath();
+          ctx.ellipse(s.x, s.y, 34 * pulse, 24 * pulse, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          if (s.gathered) {
+            ctx.strokeStyle = '#e9ffd7';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(s.x - 10, s.y + 1);
+            ctx.lineTo(s.x - 2, s.y + 9);
+            ctx.lineTo(s.x + 14, s.y - 10);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      function storyStage(){
+        if (area === 0 && !flags.messenger) return 'Capítulo 1 - O chamado no pasto: encontre o mensageiro de Jessé.';
+        if (area === 0 && !flags.herdDone) return 'Capítulo 1 - Guardar o rebanho: leve as ovelhas ao curral antes de partir.';
+        if (area === 1) return 'Capítulo 2 - A casa de Jessé: entre e encontre Samuel.';
+        if (area === 2 && !flags.samuel) return 'Capítulo 2 - O coração escolhido: ouça Samuel diante da família.';
+        if (area === 2 && flags.brothersLeft && !flags.basket) return 'Capítulo 3 - Uma nova ordem: fale com Jessé a sós.';
+        if (area === 2 && flags.basket) return 'Capítulo 3 - Rumo ao acampamento: leve alimento aos irmãos.';
+        if (area === 3 && !flags.eliabe) return 'Capítulo 4 - O desafio: procure Eliabe entre as tendas.';
+        if (area === 3 && !flags.soldier) return 'Capítulo 4 - Quarenta dias de medo: fale com o soldado.';
+        if (area === 3 && !flags.saul) return 'Capítulo 4 - Diante do rei: procure Saul.';
+        if (area === 3 && !flags.stones) return 'Capítulo 4 - Cinco pedras lisas: vá ao riacho.';
+        if (area === 4 && !flags.finalDialog) return 'Capítulo 5 - O vale: enfrente Golias confiando no Senhor.';
+        return 'A jornada de Davi está quase completa.';
+      }
+
+      function drawQuestPanel(){
+        if (!(mode === 'explore' || mode === 'herd')) return;
+        roundRect(18, H - 74, 710, 48, 10, 'rgba(24,13,3,.72)', 'rgba(201,168,76,.38)');
+        drawText(storyStage(), 38, H - 43, 13, 'rgba(245,230,200,.92)');
+      }
 
       function drawAreaBase(){
         const a = areas[area];
         if (cameraShake > 0) ctx.translate((Math.random()-.5)*6, (Math.random()-.5)*4);
         rect(0,0,W,H,a.ground);
-        const grad = ctx.createRadialGradient(W*.35,H*.2,30,W*.5,H*.5,620);
-        grad.addColorStop(0,'rgba(255,226,150,.13)');
-        grad.addColorStop(1,'rgba(20,10,2,.18)');
-        ctx.fillStyle=grad; ctx.fillRect(0,55,W,H-55);
-        for (let x=0;x<W;x+=48) for (let y=55;y<H;y+=48) {
-          ctx.fillStyle = (x+y)%96===0 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.025)';
-          ctx.fillRect(x,y,48,48);
+        const bg = assets.backgrounds[area];
+        if (assetsReady && bg) {
+          drawCoverImage(bg);
+          ctx.fillStyle = 'rgba(20,10,2,.10)';
+          ctx.fillRect(0,55,W,H-55);
+        } else {
+          const grad = ctx.createRadialGradient(W*.35,H*.2,30,W*.5,H*.5,620);
+          grad.addColorStop(0,'rgba(255,226,150,.13)');
+          grad.addColorStop(1,'rgba(20,10,2,.18)');
+          ctx.fillStyle=grad; ctx.fillRect(0,55,W,H-55);
+          for (let x=0;x<W;x+=48) for (let y=55;y<H;y+=48) {
+            ctx.fillStyle = (x+y)%96===0 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.025)';
+            ctx.fillRect(x,y,48,48);
+          }
+          ctx.beginPath();
+          ctx.moveTo(0,368); ctx.bezierCurveTo(180,318,330,355,515,302); ctx.bezierCurveTo(690,254,795,300,960,248);
+          ctx.lineWidth=54; ctx.strokeStyle=a.path; ctx.stroke();
+          ctx.lineWidth=5; ctx.strokeStyle='rgba(82,48,20,.24)'; ctx.stroke();
         }
-        ctx.beginPath();
-        ctx.moveTo(0,368); ctx.bezierCurveTo(180,318,330,355,515,302); ctx.bezierCurveTo(690,254,795,300,960,248);
-        ctx.lineWidth=54; ctx.strokeStyle=a.path; ctx.stroke();
-        ctx.lineWidth=5; ctx.strokeStyle='rgba(82,48,20,.24)'; ctx.stroke();
         rect(0,0,W,55,'rgba(26,14,0,.88)');
         drawText(a.name, 24, 35, 24, theme.primary);
         drawText(a.objective, W-28, 35, 15, theme.text, 'right');
@@ -1256,37 +1591,46 @@ def tela_rpg_davi(historia, tema):
       function drawWorld(){
         drawAreaBase();
         if (area === 0) {
-          drawTree(83,128); drawTree(135,182); drawTree(595,118); drawTree(638,173);
-          drawRock(392,430); drawRock(520,364,.8); drawRock(694,316,.9);
-          rect(715,93,185,155,'rgba(94,62,29,.45)');
-          ctx.strokeStyle = '#4a2e17'; ctx.lineWidth = 7; ctx.strokeRect(715,93,185,155);
-          rect(785,242,48,12,'#bd9656');
-          drawText('Curral', 807, 84, 16, theme.text, 'center');
-          npc(270,270,'#CDA15A','M','Mensageiro',{mantle:'#7e4c2a'});
-          for (const s of sheep) {
-            ellipse(s.x,s.y,17,12,s.in ? '#fff8dc' : '#f2f0e6','#7b6d55');
-            ellipse(s.x+10,s.y-7,7,6,'#f7f2e6','#7b6d55');
-            rect(s.x-8,s.y+9,3,7,'#3c3327'); rect(s.x+7,s.y+9,3,7,'#3c3327');
+          if (!hasImageBackground()) {
+            drawTree(83,128); drawTree(135,182); drawTree(595,118); drawTree(638,173);
+            drawRock(392,430); drawRock(520,364,.8); drawRock(694,316,.9);
+            rect(715,93,185,155,'rgba(94,62,29,.45)');
+            ctx.strokeStyle = '#4a2e17'; ctx.lineWidth = 7; ctx.strokeRect(715,93,185,155);
+            rect(785,242,48,12,'#bd9656');
+            drawText('Curral', 807, 84, 16, theme.text, 'center');
           }
-          if (flags.herdDone) drawText('Saída para a Casa de Jessé', 820, 520, 15, theme.primary, 'center');
+          npc(270,270,'#CDA15A','M','Mensageiro',{mantle:'#7e4c2a'});
+          if (mode === 'herd') drawHerdMarkers();
+          if (flags.herdDone && !hasImageBackground()) drawText('Saída para a Casa de Jessé', 820, 520, 15, theme.primary, 'center');
           if (!flags.messenger && near(270,270)) hint = 'E: falar com o mensageiro';
           if (flags.herdDone && player.x > 820) hint = 'E: seguir para a casa';
         }
         if (area === 1) {
-          roundRect(160,104,640,340,10,'rgba(93,54,24,.80)',theme.border);
-          rect(182,128,596,42,'rgba(255,225,160,.10)');
-          rect(450,414,70,30,'#2f1a0c');
-          drawText('Casa de Jessé', 480, 154, 20, theme.primary, 'center');
-          npc(325,300,'#D9B27C','J','Jessé',{mantle:'#6d4528'});
-          npc(510,215,'#D4BF74','S','Samuel',{mantle:'#f0d88a'});
-          npc(420,315,'#A96A3A','E','Eliabe',{mantle:'#5f321c'});
-          npc(590,318,'#A97842','A','Abinadabe',{mantle:'#684024'});
-          npc(665,315,'#A97842','S','Samá',{mantle:'#684024'});
-          if (!flags.samuel && near(510,215)) hint = 'E: ouvir Samuel';
-          if (flags.anointed && !flags.basket && near(325,300)) hint = 'E: falar com Jessé';
-          if (flags.basket && player.x > 830) hint = 'E: seguir ao acampamento';
+          if (!hasImageBackground()) {
+            roundRect(385,255,190,155,10,'rgba(66,36,16,.25)',theme.border);
+          drawText('Casa de Jessé', 480, 245, 22, theme.primary, 'center');
+          }
+          if (near(492,350,110)) hint = 'E: entrar na casa';
         }
         if (area === 2) {
+          if (!(assetsReady && assets.backgrounds[2])) {
+            roundRect(160,104,640,340,10,'rgba(93,54,24,.80)',theme.border);
+            rect(182,128,596,42,'rgba(255,225,160,.10)');
+            rect(450,414,70,30,'#2f1a0c');
+            drawText('Casa de Jessé', 480, 154, 20, theme.primary, 'center');
+          }
+          npc(325,300,'#D9B27C','J','Jessé',{mantle:'#6d4528'});
+          npc(510,215,'#D4BF74','S','Samuel',{mantle:'#f0d88a'});
+          if (!flags.brothersLeft) {
+            npc(420,315,'#A96A3A','E','Eliabe',{mantle:'#5f321c'});
+            npc(590,318,'#A97842','A','Abinadabe',{mantle:'#684024'});
+            npc(665,315,'#A97842','S','Samá',{mantle:'#684024'});
+          }
+          if (!flags.samuel && near(510,215)) hint = 'E: ouvir Samuel';
+          if (flags.brothersLeft && !flags.basket && near(325,300)) hint = 'E: falar com Jessé';
+          if (flags.basket && near(480,430,120)) hint = 'E: seguir ao acampamento';
+        }
+        if (area === 3) {
           for (let i=0;i<5;i++) {
             drawTent(110+i*96,128+(i%2)*48,'#c09759');
           }
@@ -1305,7 +1649,7 @@ def tela_rpg_davi(historia, tema):
           if (flags.saul && !flags.stones && near(765,430,76)) hint = 'E: escolher cinco pedras lisas';
           if (flags.stones && player.x > 830) hint = 'E: seguir ao Vale de Elá';
         }
-        if (area === 3) {
+        if (area === 4) {
           rect(65,130,250,300,'rgba(197,161,83,.22)');
           rect(650,105,250,350,'rgba(92,34,24,.26)');
           drawText('Israel', 190, 112, 18, theme.text, 'center');
@@ -1313,12 +1657,11 @@ def tela_rpg_davi(historia, tema):
           for (let i=0;i<7;i++) sprite(100+i*28,180+(i%3)*55,18,24,'#D8C083','I',.8);
           for (let i=0;i<7;i++) sprite(700+i*28,330-(i%3)*52,18,24,'#9E4C38','F',.8);
           const gy = flags.goliathDown ? 300 + Math.min(90, (150-goliathFall)) : 190;
-          sprite(715, gy, 58, 76, '#8E4C38', 'G', 1.6, {mantle:'#4a1d17', text:'#f4d6b5'});
+          drawGoliath(715, gy);
           drawText('Golias', 760, gy+138, 16, theme.text, 'center');
           if (!flags.finalDialog && near(730,245,110)) hint = 'E: enfrentar Golias';
         }
-        sprite(player.x, player.y, player.w, player.h, theme.primary, player.basket ? 'D+' : 'D', 1, {mantle:'#8a5b24'});
-        if (player.basket) roundRect(player.x+22, player.y+18, 16, 13, 4, '#c59043', '#6b411d');
+        drawDavi();
         if (anoint > 0) {
           ctx.beginPath(); ctx.arc(player.x+14, player.y-8, 28 + Math.sin(anoint/6)*5, 0, Math.PI*2);
           ctx.strokeStyle = theme.primary; ctx.lineWidth = 3; ctx.stroke();
@@ -1329,28 +1672,56 @@ def tela_rpg_davi(historia, tema):
       }
 
       function drawDialog(){
-        roundRect(45,382,870,145,12,'rgba(24,13,3,.94)',theme.border);
-        drawText('[' + typed.npc.toUpperCase() + ']', 72, 414, 18, typed.color);
-        const text = currentLine().slice(0, Math.floor(typed.shown));
-        wrapText('"' + text + '"', 72, 450, 790, 24, 19, theme.text);
-        drawText('[E] Continuar', 800, 505, 15, theme.primary, 'center');
+        const line = currentLine();
+        const activeSpeaker = line.startsWith('Davi:') ? 'Davi Guerreiro' : typed.npc;
+        const shownText = line.replace(/^Davi:\\s*/, '').slice(0, Math.floor(typed.shown));
+        roundRect(45,372,870,155,12,'rgba(24,13,3,.94)',theme.border);
+        roundRect(68,402,92,92,8,'rgba(0,0,0,.35)',theme.border);
+        const portrait = assets.portraits[activeSpeaker] || assets.portraits[typed.npc];
+        if (assetsReady && portrait) {
+          ctx.drawImage(portrait, 74, 408, 80, 80);
+        } else {
+          ellipse(114,448,35,35,'rgba(201,168,76,.28)',theme.border);
+          drawText(activeSpeaker.slice(0,1), 114, 456, 28, theme.primary, 'center');
+        }
+        drawText(activeSpeaker.toUpperCase(), 184, 412, 18, typed.color);
+        wrapText('"' + shownText + '"', 184, 448, 650, 25, 19, theme.text);
+        drawText('[E] Continuar', 810, 503, 15, theme.primary, 'center');
+      }
+
+      function drawCutscene(){
+        rect(0,0,W,H,'#130802');
+        rect(0,0,W,55,'rgba(26,14,0,.94)');
+        drawText(cutscene.title, 24, 35, 24, theme.primary);
+        const img = assets.cutscenes[cutscene.key];
+        if (assetsReady && img) {
+          const box = {x:90, y:82, w:780, h:305};
+          roundRect(box.x-8, box.y-8, box.w+16, box.h+16, 10, 'rgba(0,0,0,.35)', theme.border);
+          const scale = Math.min(box.w / img.width, box.h / img.height);
+          const dw = img.width * scale;
+          const dh = img.height * scale;
+          ctx.drawImage(img, box.x + (box.w-dw)/2, box.y + (box.h-dh)/2, dw, dh);
+        }
+        roundRect(70,410,820,105,12,'rgba(24,13,3,.94)',theme.border);
+        wrapText('"' + currentCutsceneLine().slice(0, Math.floor(cutscene.shown)) + '"', 100, 445, 710, 25, 20, theme.text);
+        drawText('[E] Continuar', 795, 492, 15, theme.primary, 'center');
       }
 
       function drawIntro(){
         drawAreaBase();
-        drawTree(115,150); drawTree(620,140); drawTree(710,205);
-        npc(270,270,'#CDA15A','M','Mensageiro',{mantle:'#7e4c2a'});
-        for (const s of sheep) ellipse(s.x,s.y,17,12,'#f2f0e6','#7b6d55');
-        sprite(player.x, player.y, player.w, player.h, theme.primary, 'D', 1, {mantle:'#8a5b24'});
-        roundRect(108,95,744,290,16,'rgba(24,13,3,.88)',theme.border);
-        drawText('Davi', W/2, 152, 44, theme.primary, 'center');
-        wrapText('Um RPG bíblico top-down: viva a jornada de Davi desde os campos de Belém até o Vale de Elá. Fale com personagens, cumpra tarefas e avance pela história de 1 Samuel 16-17.', 170, 205, 620, 31, 21, theme.text);
-        drawText('Pressione E ou Espaço para começar', W/2, 335, 20, theme.primary, 'center');
+        if (!hasImageBackground()) {
+          drawTree(115,150); drawTree(620,140); drawTree(710,205);
+        }
+        roundRect(118,100,724,260,16,'rgba(24,13,3,.94)',theme.border);
+        drawText('Davi', W/2, 150, 42, theme.primary, 'center');
+        wrapText('Você é Davi, ainda pastor em Belém. Antes de qualquer batalha, há um chamado em casa, um profeta esperando e um rebanho sob seu cuidado.', 168, 200, 624, 30, 20, theme.text);
+        drawText('Pressione E ou Espaço para começar', W/2, 320, 20, theme.primary, 'center');
       }
 
       function wrapText(text, x, y, maxWidth, lineHeight, size, color){
         ctx.font = `600 ${size}px ${theme.font}, Georgia, serif`;
         ctx.fillStyle = color;
+        ctx.textAlign = 'left';
         const words = text.split(' ');
         let line = '';
         for (const word of words) {
@@ -1365,11 +1736,10 @@ def tela_rpg_davi(historia, tema):
       }
 
       function drawHerdHud(){
-        const left = Math.max(0, 30 - Math.floor((performance.now()-herdStart)/1000));
         roundRect(24,68,430,84,8,'rgba(24,13,3,.82)',theme.border);
         drawText('Guardar o Rebanho', 44, 96, 19, theme.primary);
-        drawText('Empurre as ovelhas para o curral. Tempo: ' + left + 's', 44, 124, 15, theme.text);
-        drawText('Dica: toque nelas pelo lado oposto ao curral.', 44, 144, 13, 'rgba(245,230,200,.82)');
+        drawText('Aproxime-se das ovelhas destacadas no pasto.', 44, 124, 15, theme.text);
+        drawText('Reunidas: ' + herdSpots.filter(s => s.gathered).length + '/' + herdSpots.length, 44, 144, 13, 'rgba(245,230,200,.82)');
       }
 
       function drawStones(){
@@ -1413,12 +1783,14 @@ def tela_rpg_davi(historia, tema):
         ctx.clearRect(0,0,W,H);
         ctx.save();
         if (mode === 'intro') drawIntro();
+        else if (mode === 'cutscene') drawCutscene();
         else if (mode === 'stones') drawStones();
         else if (mode === 'aim') drawAim();
         else if (mode === 'cinematic') drawWorld();
         else if (mode === 'final') drawFinal();
         else {
           drawWorld();
+          drawQuestPanel();
           if (mode === 'herd') drawHerdHud();
           if (mode === 'dialog') drawDialog();
           if (hint) {
@@ -1432,6 +1804,10 @@ def tela_rpg_davi(historia, tema):
         }
         if (flash > 0) {
           ctx.fillStyle = 'rgba(255,255,255,.16)';
+          ctx.fillRect(0,0,W,H);
+        }
+        if (fadeAlpha > 0) {
+          ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
           ctx.fillRect(0,0,W,H);
         }
         ctx.restore();
@@ -1467,6 +1843,66 @@ def tela_rpg_davi(historia, tema):
     st.components.v1.html(html_code, height=630, scrolling=False)
     st.caption("Conclua o RPG no Canvas primeiro. Ao ver a tela 'RPG concluido', libere o desfecho abaixo.")
     if st.button("Liberar desfecho apos concluir o RPG", use_container_width=True):
+        st.session_state.rpg_finalizado = True
+        st.session_state.desafio_concluido = True
+        st.session_state.tela = "desafio_final"
+        st.rerun()
+
+
+def tela_rpg_davi_profissional(historia, tema):
+    script_path = os.path.join("static", "rpg", "davi", "rpg_davi.js")
+    with open(script_path, "r", encoding="utf-8") as arquivo_js:
+        rpg_js = arquivo_js.read()
+
+    tema_js = {
+        "primary": tema["cor_primaria"],
+        "text": tema["cor_texto"],
+        "border": tema["cor_borda"],
+        "bg": tema["fundo"],
+        "font": tema.get("fonte", "Georgia"),
+    }
+    fonte = html.escape(tema.get("fonte", "Georgia"))
+    html_code = f"""
+    <style>
+      body {{ margin: 0; background: transparent; }}
+      #rpgWrap {{
+        width: min(100%, 980px);
+        margin: 0 auto;
+        border: 2px solid {html.escape(tema["cor_borda"])};
+        border-radius: 8px;
+        overflow: hidden;
+        background: #150a02;
+        box-shadow: 0 28px 90px rgba(0,0,0,.45);
+      }}
+      #rpgCanvas {{
+        width: 100%;
+        display: block;
+        outline: none;
+        background: {html.escape(tema["fundo"])};
+        image-rendering: auto;
+      }}
+      #rpgHelp {{
+        padding: 10px 14px;
+        color: {html.escape(tema["cor_texto"])};
+        background: rgba(20, 11, 3, .92);
+        border-top: 1px solid {html.escape(tema["cor_borda"])};
+        font: 14px {fonte}, Georgia, serif;
+      }}
+    </style>
+    <div id="rpgWrap">
+      <canvas id="rpgCanvas" width="960" height="560" tabindex="0"></canvas>
+      <div id="rpgHelp">Setas ou WASD para mover. E ou Espaço para interagir e avançar diálogos. Clique nos minijogos quando solicitado.</div>
+    </div>
+    <script>
+      window.RPG_THEME = {json.dumps(tema_js, ensure_ascii=False)};
+    </script>
+    <script>
+    {rpg_js}
+    </script>
+    """
+    st.components.v1.html(html_code, height=630, scrolling=False)
+    st.caption("Conclua o RPG no Canvas primeiro. Ao ver a tela 'RPG concluído', libere o desfecho abaixo.")
+    if st.button("Liberar desfecho após concluir o RPG", use_container_width=True):
         st.session_state.rpg_finalizado = True
         st.session_state.desafio_concluido = True
         st.session_state.tela = "desafio_final"
@@ -1550,7 +1986,7 @@ elif st.session_state.tela == "rpg":
     tema_atual = aplicar_tema(historia)
     st.markdown('<div class="story-shell">', unsafe_allow_html=True)
     st.markdown(f'<div class="story-title">RPG de {escape(historia["titulo"])}</div>', unsafe_allow_html=True)
-    tela_rpg_davi(historia, tema_atual)
+    tela_rpg_davi_profissional(historia, tema_atual)
     st.markdown("</div>", unsafe_allow_html=True)
 
 elif st.session_state.tela == "cena":
